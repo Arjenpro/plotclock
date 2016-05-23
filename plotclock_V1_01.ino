@@ -1,45 +1,36 @@
-// Plotclock
 // cc - by Johannes Heberlein 2014
-// v 1.01
 // thingiverse.com/joo   wiki.fablab-nuernberg.de
 
-// units: mm; microseconds; radians
-// origin: bottom left of drawing surface
 
-// time library see http://playground.arduino.cc/Code/time 
-
-// delete or mark the next line as comment when done with calibration  
 //#define CALIBRATION
 
-// When in calibration mode, adjust the following factor until the servos move exactly 90 degrees
+
 #define SERVOFAKTOR 430
 
 
-// Zero-position of left and right servo
-// When in calibration mode, adjust the NULL-values so that the servo arms are at all times parallel
-// either to the X or Y axis
-#define SERVOLEFTNULL 2020//knol
-#define SERVORIGHTNULL 920//knol
+
+#define SERVOLEFTNULL 2020
+#define SERVORIGHTNULL 920
 
 #define SERVOPINLIFT  2
 #define SERVOPINLEFT  3
 #define SERVOPINRIGHT 4
 
-// lift positions of lifting servo          //higher is lower
-#define LIFT0 1100 //knol// on drawing surface//1100
-#define LIFT1 930  // between numbers//950
-#define LIFT2 350 //knol // going towards sweeper//560
 
-// speed of liftimg arm, higher is slower
+#define LIFT0 1100
+#define LIFT1 930 
+#define LIFT2 350
+
+
 #define LIFTSPEED 350
 
-// length of arms
+
 #define L1 35
 #define L2 55.1
 #define L3 13.2
 
 
-// origin points of left and right servo 
+
 #define O1X 22
 #define O1Y -25
 #define O2X 47
@@ -50,7 +41,7 @@
 
 
 
-#include <Time.h> // see http://playground.arduino.cc/Code/time 
+#include <Time.h> 
 #include <Servo.h>
 #include <DS1307RTC.h>
 #include <LiquidCrystal.h> 
@@ -73,8 +64,8 @@ int last_min = 0;
 void setup() 
 { 
   Serial.begin(9600);
-  // Set current time only the first to values, hh,mm are needed
-  setTime(13,37,0,0,0,0);
+
+
 
  tmElements_t tm;
 
@@ -97,7 +88,7 @@ void setup()
   servo2.attach(SERVOPINLEFT);  //  left servo
   servo3.attach(SERVOPINRIGHT);  //  right servo
   delay(1000);
-  lcd.print("Opstarten voltooid..");
+  lcd.print("Opstarten voltooid!");
 
 } 
 
@@ -113,7 +104,7 @@ void loop()
 
 #ifdef CALIBRATION
 
-  // Servohorns will have 90° between movements, parallel to x and y axis
+
   drawTo(-3, 29.2);
   delay(500);
   drawTo(74.1, 28);
@@ -159,9 +150,9 @@ void loop()
   
      lift(3);
      delay(250);
-  drawTo(77, 45);
-      delay(750);
-  //76.44//46
+     drawTo(77, 45);
+     delay(750);
+ 
  
   
  
@@ -178,8 +169,7 @@ void loop()
 
 } 
 
-// Writing numeral with bx by being the bottom left originpoint. Scale 1 equals a 20 mm high font.
-// The structure follows this principle: move to first startpoint of the numeral, lift down, draw numeral, lift up
+
 void number(float bx, float by, int num, float scale) {
 
   switch (num) {
@@ -284,7 +274,7 @@ void number(float bx, float by, int num, float scale) {
     drawTo(5, 20);
     drawTo(60, 44);
 
-  //drawTo(75.2, 46);
+  
 
     drawTo(75.2, 45.9);
     lift(2);
@@ -309,9 +299,9 @@ void number(float bx, float by, int num, float scale) {
 
 void lift(char lift) {
   switch (lift) {
-    // room to optimize  !
+  
 
-  case 0: //850
+  case 0: 
 
       if (servoLift >= LIFT0) {
       while (servoLift >= LIFT0) 
@@ -333,7 +323,7 @@ void lift(char lift) {
 
     break;
 
-  case 1: //150
+  case 1: 
 
     if (servoLift >= LIFT1) {
       while (servoLift >= LIFT1) {
@@ -429,16 +419,13 @@ void drawTo(double pX, double pY) {
   double dx, dy, c;
   int i;
 
-  // dx dy of new point
   dx = pX - lastX;
   dy = pY - lastY;
-  //path lenght in mm, times 4 equals 4 steps per mm
   c = floor(4 * sqrt(dx * dx + dy * dy));
 
   if (c < 1) c = 1;
 
   for (i = 0; i <= c; i++) {
-    // draw line point by point
     set_XY(lastX + (i * dx / c), lastY + (i * dy / c));
 
   }
@@ -457,24 +444,19 @@ void set_XY(double Tx, double Ty)
   delay(1);
   double dx, dy, c, a1, a2, Hx, Hy;
 
-  // calculate triangle between pen, servoLeft and arm joint
-  // cartesian dx/dy
   dx = Tx - O1X;
   dy = Ty - O1Y;
 
-  // polar lemgth (c) and angle (a1)
   c = sqrt(dx * dx + dy * dy); // 
   a1 = atan2(dy, dx); //
   a2 = return_angle(L1, L2, c);
 
   servo2.writeMicroseconds(floor(((a2 + a1 - M_PI) * SERVOFAKTOR) + SERVOLEFTNULL));
 
-  // calculate joinr arm point for triangle of the right servo arm
   a2 = return_angle(L2, L1, c);
   Hx = Tx + L3 * cos((a1 - a2 + 0.621) + M_PI); //36,5°
   Hy = Ty + L3 * sin((a1 - a2 + 0.621) + M_PI);
 
-  // calculate triangle between pen joint, servoRight and arm joint
   dx = Hx - O2X;
   dy = Hy - O2Y;
 
